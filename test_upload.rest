@@ -1,0 +1,19 @@
+### Upload CSV to create/populate table
+POST http://localhost:3000/upload
+Content-Type: multipart/form-data
+
+--boundary123
+Content-Disposition: form-data; name="tableName"
+
+orders_march
+--boundary123
+Content-Disposition: form-data; name="file"; filename="test.csv"
+Content-Type: text/csv
+
+title,date,memo,num,source_name,qty
+Widget A,2025-03-01,First order,001,Warehouse 1,10
+Widget B,2025-03-02,Second order,002,Warehouse 2,5
+--boundary123--
+
+### Clear table
+DELETE http://localhost:3000/table/aj

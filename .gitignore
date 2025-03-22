@@ -1,0 +1,18 @@
+# Node
+node_modules/
+dist/
+.env
+
+# SQLite DB
+*.db
+
+# VSCode
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# System
+.DS_Store
+Thumbs.db

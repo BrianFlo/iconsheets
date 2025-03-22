@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CSV Uploader</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    input, button { margin: 0.5rem 0; padding: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h2>Upload CSV to Create Table</h2>
+  <form id="uploadForm">
+    <label>Table Name:</label><br />
+    <input type="text" name="tableName" required /><br />
+
+    <label>CSV File:</label><br />
+    <input type="file" name="file" accept=".csv" required /><br />
+
+    <button type="submit">Upload</button>
+  </form>
+
+  <pre id="response"></pre>
+
+  <hr />
+<h2>View Table Data</h2>
+<form id="viewForm">
+  <label>Table Name:</label><br />
+  <input type="text" name="viewTableName" required /><br />
+  <button type="submit">View Table</button>
+</form>
+
+<div id="tableContainer"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const responseBox = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      const res = await fetch('http://localhost:3000/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      responseBox.textContent = JSON.stringify(data, null, 2);
+    });
+
+    const viewForm = document.getElementById('viewForm');
+  const tableContainer = document.getElementById('tableContainer');
+
+  viewForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const tableName = viewForm.viewTableName.value.trim();
+    if (!tableName) return;
+
+    const res = await fetch(`http://localhost:3000/table/${tableName}`);
+    const data = await res.json();
+
+    if (data.error) {
+      tableContainer.innerHTML = `<p style="color:red;">${data.error}</p>`;
+      return;
+    }
+
+    if (!data.rows.length) {
+      tableContainer.innerHTML = `<p>No data found in table '${tableName}'.</p>`;
+      return;
+    }
+
+    const headers = Object.keys(data.rows[0]);
+    const tableHTML = `
+      <table border="1" cellpadding="5" cellspacing="0">
+        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${data.rows.map(row => `
+            <tr>${headers.map(h => `<td>${row[h] ?? ''}</td>`).join('')}</tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    tableContainer.innerHTML = tableHTML;
+  });
+  </script>
+</body>
+</html>
