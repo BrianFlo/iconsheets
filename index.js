@@ -124,8 +124,27 @@ app.delete('/table/:tableName', (req, res) => {
     });
   });
   
+  app.put('/table/:tableName', (req, res) => {
+    const { id, updates } = req.body;
+    const tableName = req.params.tableName;
   
+    if (!id || !updates || typeof updates !== 'object') {
+      return res.status(400).json({ error: 'Invalid update request.' });
+    }
   
+    const fields = Object.keys(updates);
+    const values = fields.map(f => updates[f]);
+  
+    const setClause = fields.map(f => `"${f}" = ?`).join(', ');
+    const sql = `UPDATE "${tableName}" SET ${setClause} WHERE id = ?`;
+  
+    db.run(sql, [...values, id], function (err) {
+      if (err) {
+        return res.status(500).json({ error: 'Update failed.' });
+      }
+      res.json({ message: `Updated row ${id} in table '${tableName}'` });
+    });
+  });
 
 // Start server
 app.listen(PORT, () => {

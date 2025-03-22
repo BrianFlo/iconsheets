@@ -72,20 +72,65 @@
       return;
     }
 
-    const headers = Object.keys(data.rows[0]);
+    const headers = [
+      'id',
+      'date',
+      'memo',
+      'num',
+      'source_name',
+      'qty',
+      'recieved',
+      'rcvd_date',
+      'freight',
+      'notes'
+    ];
     const tableHTML = `
       <table border="1" cellpadding="5" cellspacing="0">
-        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+        <thead><tr>
+          ${headers.map(h => `<th>${h}</th>`).join('')}
+          <th>Actions</th>
+        </tr></thead>
         <tbody>
           ${data.rows.map(row => `
-            <tr>${headers.map(h => `<td>${row[h] ?? ''}</td>`).join('')}</tr>
+            <tr data-id="${row.id}">
+              ${headers.map(h => `
+                <td contenteditable="${h !== 'id'}" data-field="${h}">${row[h] ?? ''}</td>
+              `).join('')}
+              <td><button class="save-btn">Save</button></td>
+            </tr>
           `).join('')}
         </tbody>
       </table>
     `;
 
     tableContainer.innerHTML = tableHTML;
-  });
+
+    setTimeout(() => {
+    document.querySelectorAll('.save-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const row = e.target.closest('tr');
+        const id = row.dataset.id;
+
+        const updatedData = {};
+        row.querySelectorAll('td[data-field]').forEach(cell => {
+          const field = cell.dataset.field;
+          if (field !== 'id') {
+            updatedData[field] = cell.textContent.trim();
+          }
+        });
+
+        const res = await fetch(`http://localhost:3000/table/${tableName}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, updates: updatedData })
+        });
+
+        const result = await res.json();
+        alert(result.message || 'Update complete');
+      });
+    });
+  }, 0);
+});    
   </script>
 </body>
 </html>
